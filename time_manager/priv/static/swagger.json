@@ -1,0 +1,330 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Time Manager API"
+  },
+  "host": "localhost:4000",
+  "basePath": "/api",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Liste des utilisateurs",
+        "description": "Retourne la liste des utilisateurs",
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Liste des utilisateurs",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Créer un utilisateur",
+        "description": "Crée un nouvel utilisateur",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Utilisateur créé"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Obtenir un utilisateur par ID",
+        "description": "Retourne un utilisateur par son ID",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Utilisateur trouvé",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "404": {
+            "description": "Utilisateur non trouvé"
+          }
+        }
+      },
+      "put": {
+        "summary": "Mettre à jour un utilisateur",
+        "description": "Met à jour un utilisateur par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Utilisateur mis à jour"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer un utilisateur",
+        "description": "Supprime un utilisateur par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Utilisateur supprimé"
+          }
+        }
+      }
+    },
+    "/workingtime/{userID}": {
+      "get": {
+        "summary": "Obtenir les temps de travail d'un utilisateur",
+        "description": "Retourne la liste des temps de travail pour un utilisateur donné entre deux dates",
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des temps de travail",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WorkingTime"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Ajouter un temps de travail",
+        "description": "Ajoute un nouveau temps de travail pour un utilisateur donné",
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/WorkingTime"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Temps de travail ajouté"
+          }
+        }
+      }
+    },
+    "/workingtime/{id}": {
+      "put": {
+        "summary": "Mettre à jour un temps de travail",
+        "description": "Met à jour un temps de travail par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/WorkingTime"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Temps de travail mis à jour"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer un temps de travail",
+        "description": "Supprime un temps de travail par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Temps de travail supprimé"
+          }
+        }
+      }
+    },
+    "/clocks/{userID}": {
+      "get": {
+        "summary": "Obtenir les clocks d'un utilisateur",
+        "description": "Retourne la liste des clocks d'un utilisateur",
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des clocks",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Clock"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Ajouter un clock",
+        "description": "Ajoute un clock (clock in ou clock out) pour un utilisateur",
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Clock"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Clock ajouté"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      }
+    },
+    "WorkingTime": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "user_id": {
+          "type": "integer"
+        }
+      }
+    },
+    "Clock": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "boolean"
+        },
+        "user_id": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

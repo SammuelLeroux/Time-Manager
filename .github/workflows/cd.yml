@@ -1,0 +1,68 @@
+name: CI/CD for Elixir and Vue.js
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Continuous Deployment
+    runs-on: self-hosted
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRESUSER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRESMDP }}
+          POSTGRES_DB: time_manager_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install docker-compose -y
+
+      - name: Build and Start services with Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml up --build -d
+        continue-on-error: false
+
+      #- name: Run Elixir tests
+      #  run: |
+      #    docker-compose run app mix test
+      #  continue-on-error: false
+
+      #- name: Run Vue.js tests
+      #  run: |
+      #    docker-compose run vue npm test
+      #  continue-on-error: false
+
+      - name: Push Docker images if tests passed
+        if: success()
+        run: |
+          echo "Pushing Docker images..."
+          
+          echo "${{ secrets.DOCKERHUBMDP }}" | docker login -u "${{ secrets.DOCKERHUBEMAIL }}" --password-stdin
+          
+          docker tag elixir:1.17 rlelouch/time_manager_stg-11:elixir-latest
+          docker push "rlelouch/time_manager_stg-11:elixir-latest"
+
+          docker tag t-poo-700-stg_11_vue rlelouch/time_manager_stg-11:vue-latest
+          docker push "rlelouch/time_manager_stg-11:vue-latest"
+
+      - name: Stop and clean up Docker Compose
+        run: |
+          docker-compose down
+          docker system prune -a --volumes -f

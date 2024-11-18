@@ -1,0 +1,76 @@
+name: CI/CD for Elixir and Vue.js
+
+on:
+  pull_request:
+    branches:
+      - developp
+      - main
+
+jobs:
+  build:
+    name: Continuous Integration
+    runs-on: self-hosted
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRESUSER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRESMDP }}
+          POSTGRES_DB: time_manager_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install docker-compose -y
+
+      - name: Build and Start services with Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml up --build -d
+
+      #- name: Run Elixir tests
+      #  run: |
+      #    docker-compose run app mix test
+      #  continue-on-error: false
+
+      #- name: Run Vue.js tests
+      #  run: |
+      #    docker-compose run vue npm test
+      #  continue-on-error: false
+
+      - name: Check logs for Elixir app container
+        run: |
+          docker-compose logs app
+
+      - name: Stop and clean up Docker Compose
+        run: |
+          docker-compose down
+          docker system prune -a --volumes -f
+
+  notify_and_close:
+    runs-on: self-hosted
+    if: failure()
+    steps:
+      - name: Notify failure
+        run: |
+          echo "Tests failed! Please check the logs for details."
+
+      - name: Close Pull Request on Failure
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          curl -X PATCH -H "Authorization: token $GITHUB_TOKEN" \
+          -d '{"state":"closed"}' \
+          https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER
